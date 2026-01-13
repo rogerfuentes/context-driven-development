@@ -11,7 +11,10 @@
   "plugins": [
     {
       "name": "context-driven-development",
-      "source": ".",
+      "source": {
+        "source": "github",
+        "repo": "rogerfuentes/context-driven-development"
+      },
       "description": "RAG-first context management with spec-driven development workflow",
       "version": "1.0.0",
       "author": {
