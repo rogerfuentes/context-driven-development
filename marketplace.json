@@ -1,0 +1,27 @@
+{
+  "name": "claude-plugins",
+  "version": "1.0.0",
+  "description": "Collection of Claude Code plugins for context-driven development",
+  "plugins": [
+    {
+      "name": "context-driven-development",
+      "version": "1.0.0",
+      "description": "Unified RAG and spec-driven development workflow",
+      "path": "./context-driven-development",
+      "commands": [
+        "cdd:setup",
+        "cdd:learn",
+        "cdd:curate",
+        "cdd:health",
+        "cdd:create",
+        "cdd:implement"
+      ],
+      "skills": [
+        "run-tests",
+        "run-lint",
+        "run-typecheck",
+        "use-worktrees"
+      ]
+    }
+  ]
+}
