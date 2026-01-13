@@ -22,6 +22,7 @@ Initialize the CDD structure for a project, focusing on workflow, git-flow, and 
 1. **Determine plugin root** (try in order):
    - **Package install**: `packages/claude-plugins/context-driven-development/`
    - **Development mode**: `.claude/plugins/context-driven-development/`
+   - **Marketplace install**: `~/.claude/plugins/marketplaces/context-driven-development/`
    - **Direct install**: `~/.claude/plugins/context-driven-development/`
    - Store as `PLUGIN_ROOT` for reuse
 
@@ -34,6 +35,8 @@ Initialize the CDD structure for a project, focusing on workflow, git-flow, and 
      PLUGIN_ROOT = 'packages/claude-plugins/context-driven-development'
    else if (exists('.claude/plugins/context-driven-development/templates/'))
      PLUGIN_ROOT = '.claude/plugins/context-driven-development'
+   else if (exists('~/.claude/plugins/marketplaces/context-driven-development/templates/'))
+     PLUGIN_ROOT = '~/.claude/plugins/marketplaces/context-driven-development'
    else
      PLUGIN_ROOT = '~/.claude/plugins/context-driven-development'
    ```
