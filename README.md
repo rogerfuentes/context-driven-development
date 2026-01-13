@@ -12,11 +12,20 @@ This plugin combines:
 
 ## Installation
 
-Add to your Claude Code plugins:
+Install directly from GitHub using Claude Code:
 
 ```bash
-# Clone or copy to your plugins directory
-cp -r context-driven-development ~/.claude/plugins/
+/install-github rogerfuentes/context-driven-development
+```
+
+Or add manually to your Claude Code settings:
+
+```json
+{
+  "plugins": [
+    "github:rogerfuentes/context-driven-development"
+  ]
+}
 ```
 
 ## Quick Start
