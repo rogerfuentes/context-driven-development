@@ -1,19 +1,26 @@
 {
   "name": "context-driven-development",
-  "version": "1.0.0",
-  "description": "Unified RAG and spec-driven development workflow",
-  "commands": [
-    "cdd:setup",
-    "cdd:learn",
-    "cdd:curate",
-    "cdd:health",
-    "cdd:create",
-    "cdd:implement"
-  ],
-  "skills": [
-    "run-tests",
-    "run-lint",
-    "run-typecheck",
-    "use-worktrees"
+  "owner": {
+    "name": "Roger Fuentes",
+    "email": "jrogerfuentes@gmail.com"
+  },
+  "metadata": {
+    "description": "Unified RAG and spec-driven development workflow",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "context-driven-development",
+      "source": ".",
+      "description": "RAG-first context management with spec-driven development workflow",
+      "version": "1.0.0",
+      "author": {
+        "name": "Roger Fuentes"
+      },
+      "repository": "https://github.com/rogerfuentes/context-driven-development",
+      "license": "MIT",
+      "keywords": ["rag", "context", "spec-driven", "workflow"],
+      "category": "productivity"
+    }
   ]
 }
