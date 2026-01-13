@@ -29,6 +29,7 @@ Analyze current implementation and create an implementation plan for a feature o
 1. **Determine plugin root** (try in order):
    - **Package install**: `packages/claude-plugins/context-driven-development/`
    - **Development mode**: `.claude/plugins/context-driven-development/`
+   - **Marketplace install**: `~/.claude/plugins/marketplaces/context-driven-development/`
    - **Direct install**: `~/.claude/plugins/context-driven-development/`
    - Store as `PLUGIN_ROOT` for reuse
 

@@ -30,6 +30,7 @@ Execute the implementation plan for a spec, with optional parallel execution and
 1. **Determine plugin root** (try in order):
    - **Package install**: `packages/claude-plugins/context-driven-development/`
    - **Development mode**: `.claude/plugins/context-driven-development/`
+   - **Marketplace install**: `~/.claude/plugins/marketplaces/context-driven-development/`
    - **Direct install**: `~/.claude/plugins/context-driven-development/`
    - Store as `PLUGIN_ROOT` for reuse
 
