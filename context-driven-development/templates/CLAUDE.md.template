@@ -1,0 +1,28 @@
+# Project: {{project_name}}
+
+## Commands
+- Build: `{{build_command}}`
+- Test: `{{test_command}}`
+- Lint: `{{lint_command}}`
+
+## Product Context
+| File | Load when... |
+|------|--------------|
+| `product/vision.md` | Starting new features, making trade-off decisions |
+| `product/guidelines.md` | Writing copy, designing UI, user-facing changes |
+| `product/constraints.md` | Architectural decisions, timeline discussions |
+
+## Technical Context
+| File | Load when... |
+|------|--------------|
+<!-- Context files will be added here by /cdd:learn -->
+
+## Active Specs
+| Spec | Status |
+|------|--------|
+<!-- Active specs will be tracked here -->
+
+## Working Agreements
+- Run tests before committing
+- Use early returns
+- Keep functions small and focused

@@ -1,0 +1,16 @@
+# Logs
+*.log
+firebase-debug.log
+
+# OS files
+.DS_Store
+
+# Editor
+.idea/
+.vscode/
+
+# Claude local settings
+.claude/settings.local.json
+
+# Local documentation (research/design notes)
+docs/

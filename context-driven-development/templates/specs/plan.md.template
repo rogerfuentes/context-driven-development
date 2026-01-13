@@ -1,0 +1,48 @@
+# Plan: {{feature_name}}
+
+## Overview
+<!-- 1-2 sentences describing the implementation -->
+
+## Steps
+1. [ ]
+2. [ ]
+3. [ ]
+
+## Parallel Analysis
+
+### Can parallelize?
+<!-- Yes/No -->
+
+<!-- If No: -->
+**No** - Steps are sequential.
+
+**Reason:**
+<!-- Why parallelization is not possible -->
+
+**Recommendation:** Single agent execution. Use `/cdd:implement` without --parallel flag.
+
+<!-- If Yes: -->
+**Yes** - Independent work streams identified.
+
+### Parallel Streams
+| Stream | Steps | Files | Dependencies |
+|--------|-------|-------|--------------|
+| | | | |
+
+### Shared Contracts Required
+```typescript
+// Types and interfaces that must be defined upfront
+```
+
+### Execution Order
+1. **Parallel:**
+2. **Sequential:**
+
+**Recommendation:** Parallel execution viable. Use `/cdd:implement --parallel`.
+
+---
+
+## Validation
+- [ ] TypeScript compiles
+- [ ] Tests pass
+- [ ] Lint clean

@@ -1,0 +1,34 @@
+# Analysis: {{feature_name}}
+
+## Overview
+<!-- Brief description of what we're building -->
+
+## Current State
+
+### Existing Files
+<!-- Files that will be modified or serve as reference -->
+-
+
+### Current Patterns
+<!-- How similar functionality is implemented today -->
+
+### Dependencies
+<!-- Libraries, services, APIs involved -->
+-
+
+## Gap Analysis
+
+### New Files Needed
+<!-- Files to create -->
+- [ ]
+
+### Modifications Needed
+<!-- Existing files to change -->
+- [ ]
+
+### Tests Required
+<!-- Test coverage needed -->
+- [ ]
+
+## Technical Constraints
+<!-- Platform limitations, patterns to follow, things to avoid -->

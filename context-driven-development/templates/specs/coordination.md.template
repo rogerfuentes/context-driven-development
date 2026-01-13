@@ -1,0 +1,40 @@
+# Coordination: {{feature_name}}
+
+## Contracts
+
+```typescript
+// ALL agents MUST use these exact types
+// Define shared interfaces, types, and function signatures here
+
+```
+
+## Agent Assignments
+
+### Agent: {{stream_name}}
+**Scope:** {{file_paths}}
+
+**Deliverables:**
+-
+
+**Must use:** Types from Contracts section above
+
+**Tests:**
+
+---
+
+<!-- Repeat the Agent section for each parallel stream -->
+
+## Execution Order
+
+1. **Parallel:** <!-- agents that can run simultaneously -->
+2. **Sequential:** <!-- agents that depend on parallel phase -->
+3. **Integration:** Main agent validates and integrates
+
+## Completion Checklist
+
+- [ ] {{agent_1}}: done
+- [ ] {{agent_2}}: done
+- [ ] Integration: done
+- [ ] All tests pass
+- [ ] Types check
+- [ ] Lint clean
