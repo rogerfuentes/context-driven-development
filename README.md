@@ -12,20 +12,22 @@ This plugin combines:
 
 ## Installation
 
-Install directly from GitHub using Claude Code:
+Add the marketplace and install the plugin:
 
 ```bash
-/install-github rogerfuentes/context-driven-development
+# Add the marketplace
+/plugin marketplace add rogerfuentes/context-driven-development
+
+# Install the plugin
+/plugin install context-driven-development
 ```
 
-Or add manually to your Claude Code settings:
+Or use the interactive UI:
 
-```json
-{
-  "plugins": [
-    "github:rogerfuentes/context-driven-development"
-  ]
-}
+```bash
+/plugin
+# Navigate to Marketplaces tab → Add → rogerfuentes/context-driven-development
+# Then Discover tab → Install context-driven-development
 ```
 
 ## Quick Start
