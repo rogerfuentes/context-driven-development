@@ -1,3 +1,8 @@
+---
+name: cdd:curate
+description: Validate, optimize, and maintain context files
+---
+
 # /cdd:curate
 
 Validate, optimize, and maintain context files.

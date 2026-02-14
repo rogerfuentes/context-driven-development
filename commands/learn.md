@@ -1,3 +1,8 @@
+---
+name: cdd:learn
+description: Extract patterns from the codebase or session and create context files
+---
+
 # /cdd:learn
 
 Extract patterns from the codebase, a session, or external resources and create context files.

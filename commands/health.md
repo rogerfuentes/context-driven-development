@@ -1,3 +1,8 @@
+---
+name: cdd:health
+description: Quick health check of the context system
+---
+
 # /cdd:health
 
 Quick health check of the context system.
