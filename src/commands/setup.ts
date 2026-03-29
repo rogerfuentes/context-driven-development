@@ -28,6 +28,7 @@ export interface SetupOptions {
   all?: boolean;
   filter?: string;
   concurrency?: number;
+  exclude?: string[];
 }
 
 export async function setup(options: SetupOptions): Promise<void> {
@@ -107,7 +108,7 @@ interface SetupRootResult {
 }
 
 async function setupRoot(repoRoot: string, options: SetupOptions): Promise<SetupRootResult> {
-  const existingContext = await scanRepo(repoRoot);
+  const existingContext = await scanRepo(repoRoot, { exclude: options.exclude });
 
   // -- Legacy files: directories referenced from CLAUDE.md + well-known locations --
   const legacyFiles = await scanLegacyDirs(repoRoot, existingContext.claudeMdContent, existingContext.contextDir);
@@ -522,7 +523,7 @@ async function setupSinglePackage(
 }
 
 async function buildRootContextSummary(repoRoot: string): Promise<string> {
-  const ctx = await scanRepo(repoRoot);
+  const ctx = await scanRepo(repoRoot, { exclude: options.exclude });
   const parts: string[] = [];
 
   if (ctx.claudeMdContent) {

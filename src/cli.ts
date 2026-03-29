@@ -24,7 +24,8 @@ program
   .option('--json', 'Output machine-readable JSON')
   .option('--verbose', 'Show detailed output')
   .option('--dry-run', 'Show what would happen without executing')
-  .option('-y, --yes', 'Skip confirmation prompts (for CI)');
+  .option('-y, --yes', 'Skip confirmation prompts (for CI)')
+  .option('--exclude <paths...>', 'Exclude paths from scanning (e.g., initiatives docs)');
 
 program
   .command('install')
@@ -56,6 +57,7 @@ program
       all: cmdOpts.all,
       filter: cmdOpts.filter,
       concurrency: cmdOpts.concurrency ? parseInt(cmdOpts.concurrency as string, 10) : undefined,
+      exclude: opts.exclude,
     });
   });
 
@@ -63,7 +65,6 @@ program
   .command('curate')
   .description('Audit context file quality')
   .option('--full', 'Run semantic checks with Claude')
-  .option('--exclude <paths...>', 'Exclude paths from scanning (e.g., initiatives docs)')
   .action(async (cmdOpts) => {
     const opts = program.opts();
     await curate({
@@ -71,7 +72,7 @@ program
       verbose: opts.verbose,
       dryRun: opts.dryRun,
       full: cmdOpts.full,
-      exclude: cmdOpts.exclude,
+      exclude: opts.exclude,
     });
   });
 
@@ -80,7 +81,6 @@ program
   .description('Measure context health score')
   .option('--package <name>', 'Target a specific monorepo package')
   .option('--all', 'Run health check across all packages')
-  .option('--exclude <paths...>', 'Exclude paths from scanning (e.g., initiatives docs)')
   .action(async (cmdOpts) => {
     const opts = program.opts();
     await health({
@@ -89,7 +89,7 @@ program
       dryRun: opts.dryRun,
       package: cmdOpts.package,
       all: cmdOpts.all,
-      exclude: cmdOpts.exclude,
+      exclude: opts.exclude,
     });
   });
 
@@ -125,6 +125,7 @@ program
       url: cmdOpts.url,
       prompt: promptParts.length > 0 ? promptParts.join(' ') : undefined,
       yes: opts.yes,
+      exclude: opts.exclude,
     });
   });
 
