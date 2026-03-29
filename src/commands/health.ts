@@ -22,6 +22,7 @@ export interface HealthOptions {
   dryRun?: boolean;
   package?: string;
   all?: boolean;
+  exclude?: string[];
 }
 
 export async function health(options: HealthOptions): Promise<void> {
@@ -56,7 +57,7 @@ export async function health(options: HealthOptions): Promise<void> {
     return;
   }
 
-  const ctx = await scanRepo(scanRoot);
+  const ctx = await scanRepo(scanRoot, { exclude: options.exclude });
   const tokenAnalysis = analyzeTokens(ctx);
   const scenarioResults = simulateScenarios(ctx);
   const fileRois = calculateRoi(ctx, scenarioResults);

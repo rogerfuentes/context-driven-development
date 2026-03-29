@@ -9,6 +9,7 @@ export { computeScore, computeCompleteness, computeCleanliness } from './quality
 
 // Scanner
 export { scanRepo } from './quality/scanner.js';
+export type { ScanOptions } from './quality/scanner.js';
 
 // Token analysis
 export { estimateTokens } from './quality/token-counter.js';

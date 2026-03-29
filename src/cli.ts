@@ -63,6 +63,7 @@ program
   .command('curate')
   .description('Audit context file quality')
   .option('--full', 'Run semantic checks with Claude')
+  .option('--exclude <paths...>', 'Exclude paths from scanning (e.g., initiatives docs)')
   .action(async (cmdOpts) => {
     const opts = program.opts();
     await curate({
@@ -70,6 +71,7 @@ program
       verbose: opts.verbose,
       dryRun: opts.dryRun,
       full: cmdOpts.full,
+      exclude: cmdOpts.exclude,
     });
   });
 
@@ -78,6 +80,7 @@ program
   .description('Measure context health score')
   .option('--package <name>', 'Target a specific monorepo package')
   .option('--all', 'Run health check across all packages')
+  .option('--exclude <paths...>', 'Exclude paths from scanning (e.g., initiatives docs)')
   .action(async (cmdOpts) => {
     const opts = program.opts();
     await health({
@@ -86,6 +89,7 @@ program
       dryRun: opts.dryRun,
       package: cmdOpts.package,
       all: cmdOpts.all,
+      exclude: cmdOpts.exclude,
     });
   });
 

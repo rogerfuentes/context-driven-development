@@ -45,8 +45,12 @@ export async function scanLegacyDirs(
   }
 
   // 3. Temporal/planning pattern — used to exclude time-bound documents
-  // (plans, spikes, RFCs, ADRs, strategies) that should NOT become context files.
-  const temporalPattern = /\b(plans?|spikes?|rfcs?|adrs?|strateg(y|ies)|proposals?|tech-plans?|decisions?)\b/i;
+  // (plans, spikes, RFCs, ADRs, strategies, initiatives, specs) that should NOT become context files.
+  // Temporal patterns: match directory names and standalone filenames that indicate
+  // time-bound documents. Use path separators to avoid false positives on compound
+  // words (e.g., "cost-analysis.md" should NOT match, but "initiatives/I1/analysis.md" should).
+  const temporalDirPattern = /\b(plans?|spikes?|rfcs?|adrs?|strateg(y|ies)|proposals?|tech-plans?|decisions?|initiatives?)\b/i;
+  const temporalFilePattern = /(?:^|\/)(?:spec|analysis|summary|learnings|strategy)(?:[-.]|$)/i;
 
   // 3. Canonicalize context dir for exclusion
   const contextRel = contextDir
@@ -76,7 +80,7 @@ export async function scanLegacyDirs(
 
       // Skip temporal/planning documents — they are time-bound and should not
       // become permanent context files (e.g., docs/plans/*, docs/spikes/*)
-      if (temporalPattern.test(relativePath)) continue;
+      if (temporalDirPattern.test(relativePath) || temporalFilePattern.test(relativePath)) continue;
 
       if (seenPaths.has(relativePath)) continue;
       seenPaths.add(relativePath);
@@ -123,6 +127,10 @@ function extractReferencedDirs(claudeMdContent: string): string[] {
 
       // Skip paths inside packages/apps subdirectories
       if (/^(packages|apps|node_modules)\//.test(dir)) continue;
+
+      // Skip initiative/spec directories — these are temporal SDD artifacts
+      if (/^initiatives\b/i.test(dir)) continue;
+      if (/\bspecs?\b/.test(dir)) continue;
 
       // Skip Claude Code operational directories
       if (/\b(commands|skills|agents|workflows|rules)\b/.test(dir)) continue;
