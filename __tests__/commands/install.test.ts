@@ -95,6 +95,21 @@ describe('install command', () => {
     expect(learnContent).toContain('Extract knowledge');
   });
 
+  it('command files contain CLI integration content', async () => {
+    await install({});
+
+    const commandsDir = join(tempDir, '.claude', 'commands');
+
+    const curateContent = await readFile(join(commandsDir, 'cdd-curate.md'), 'utf-8');
+    expect(curateContent).toContain('cdd curate --json');
+
+    const healthContent = await readFile(join(commandsDir, 'cdd-health.md'), 'utf-8');
+    expect(healthContent).toContain('cdd health --json');
+
+    const learnContent = await readFile(join(commandsDir, 'cdd-learn.md'), 'utf-8');
+    expect(learnContent).toContain('cdd curate --json');
+  });
+
   it('command file contents match COMMAND_FILES source', async () => {
     await install({});
 

@@ -450,6 +450,13 @@ Quick commands:
   /cdd:create     Plan a new feature
 ```
 
+### Baseline Score (if CLI available)
+
+Check if `cdd` CLI is installed (`which cdd`). If available:
+1. Run `cdd health --json` to establish a baseline health score
+2. Run `cdd curate --json` to validate the generated context quality
+3. Present both scores to the user as a starting point for their context management
+
 ## Error Handling
 
 ### No package.json

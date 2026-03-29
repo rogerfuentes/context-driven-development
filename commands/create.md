@@ -1,7 +1,7 @@
 ---
 name: cdd:create
 description: Create a spec with analysis and implementation plan for a feature or task
-argument-hint: <description> [--quick|--full]
+argument-hint: <description> [--quick|--full] [--permanent <path>]
 ---
 
 # Context-Driven Development: Create Command
@@ -21,6 +21,7 @@ Analyze current implementation and create an implementation plan for a feature o
 - `description` (required): What you want to build or change
 - `--quick`: Skip detailed analysis, create minimal plan
 - `--full`: Full analysis with parallelization assessment (default for complex features)
+- `--permanent <path>`: Store specs at the given path instead of `.claude/specs/`. Specs persist after implementation for future reference. Example: `/cdd:create "payment flow" --permanent initiatives/`
 
 ## Important: Template Path Resolution
 
@@ -69,6 +70,8 @@ Example: "add user authentication with OAuth" → `add-user-authentication-with-
 
 ```bash
 ls .claude/specs/[spec-id]/ 2>/dev/null
+# If --permanent <path> is provided, also check:
+ls <permanent-path>/[spec-id]/ 2>/dev/null
 ```
 
 **If exists:**
@@ -161,7 +164,11 @@ cat ${PLUGIN_ROOT}/templates/specs/analysis.md.template
 
 #### Step 4.2: Fill Analysis Template
 
-Create `.claude/specs/[spec-id]/analysis.md` with:
+Create the analysis file at the appropriate path:
+- Default: `.claude/specs/[spec-id]/analysis.md`
+- If `--permanent <path>`: `<permanent-path>/[spec-id]/analysis.md`
+
+Fill with:
 
 **Current State Section:**
 - List existing files from exploration
@@ -225,7 +232,11 @@ Determine implementation complexity:
 
 #### Step 5.3: Fill Plan Template
 
-Create `.claude/specs/[spec-id]/plan.md` with:
+Create the plan file at the appropriate path:
+- Default: `.claude/specs/[spec-id]/plan.md`
+- If `--permanent <path>`: `<permanent-path>/[spec-id]/plan.md`
+
+Fill with:
 
 **Overview Section:**
 - 1-2 sentence summary of what will be built
@@ -436,7 +447,7 @@ Options:
 
 ## Notes
 
-- Specs are ephemeral - delete after implementation
+- By default, specs are stored in `.claude/specs/` and are ephemeral (delete after implementation). Use `--permanent <path>` to store specs at a project-defined location that persists after implementation — useful for complex features that need an audit trail.
 - Run `/cdd:learn` after implementation to capture patterns
 - Analysis is optional for simple changes (use --quick)
 - Parallel analysis only matters for complex features
