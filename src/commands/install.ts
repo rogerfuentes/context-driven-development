@@ -31,7 +31,7 @@ async function getPackageVersion(): Promise<string> {
     try {
       const content = await readFile(join(dir, 'package.json'), 'utf-8');
       const pkg = JSON.parse(content);
-      if (pkg.name === 'cdd') {
+      if (pkg.name === '@kelios/cdd') {
         return pkg.version;
       }
     } catch {
