@@ -17,6 +17,19 @@ Quick health check of the context system.
 
 This is a lightweight, fast check that gives a quick overview of context health.
 
+### Phase 0: CLI Health Analysis (if available)
+
+Check if the `cdd` CLI is installed by running `which cdd` via Bash.
+
+**If CLI is available:**
+1. Run `cdd health --json` via Bash to get health metrics
+2. Parse the JSON output — it includes: score (0-100), token distribution, scenario matrix, file ROI, progressive disclosure percentage
+3. Present the structured metrics to the user
+4. Add your qualitative assessment on top: Are the right topics covered? Are context files actionable? Would you recommend different file organization?
+
+**If CLI is NOT available:**
+- Proceed with the manual health check workflow below
+
 ### Pre-flight Check
 
 Verify `.claude/` structure exists. If not:

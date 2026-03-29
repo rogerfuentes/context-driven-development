@@ -35,7 +35,7 @@ Execute the implementation plan for a spec, with optional parallel execution and
    - Store as `PLUGIN_ROOT` for reuse
 
 2. **Read templates using**:
-   - `${PLUGIN_ROOT}/templates/specs/coordination.md.template`
+   - No templates required for implementation (coordination uses TaskList + SendMessage)
 
 ## Process
 
@@ -197,136 +197,47 @@ if (gates.unitTests?.enabled) {
 - Report failure
 - Suggest fixes
 
-### Phase 4B: Parallel Execution (if --parallel)
+### Phase 4B: Parallel Execution (when --parallel is specified)
 
-#### Step 4B.1: Read Coordination Template
+**Lead-Owns-Shared-Files Pattern** (CRITICAL):
+- The lead agent (you) owns ALL shared files: entry points, barrel exports, type definitions, config files
+- Parallel agents create NEW files only — they must NEVER modify files that other agents touch
+- If a parallel agent needs changes to a shared file, it creates a separate integration file and reports back
 
-```bash
-cat ${PLUGIN_ROOT}/templates/specs/coordination.md.template
-```
+#### Phase 4B.0: Foundation (Lead, Sequential)
 
-#### Step 4B.2: Extract Parallel Streams from Plan
+1. Build shared types, interfaces, and constants that parallel agents will need
+2. Create any shared infrastructure files
+3. Verify baseline tests pass
 
-From plan.md's Parallel Analysis section, extract:
-- Stream names
-- Steps per stream
-- Files per stream
-- Dependencies
-- Shared contracts
+#### Phase 4B.1: Parallel Execution
 
-#### Step 4B.3: Create Coordination File
+For each independent work stream:
+1. Use `TaskCreate` to create a task with:
+   - Clear scope: exact files to create, functions to implement
+   - Deliverables: list of files the agent will produce
+   - Constraints: which files are OFF-LIMITS (shared files)
+2. Launch an Agent for each task
+3. Each agent uses `TaskUpdate` to report progress
+4. If an agent is blocked, it uses `SendMessage` to notify the lead
+5. Lead monitors via `TaskList` and `TaskGet`
 
-Create `.claude/specs/[spec-id]/coordination.md`:
+#### Phase 4B.2: Integration (Lead, Sequential)
 
-```markdown
-# Coordination: [spec-id]
-
-## Contracts
-
-```typescript
-// Shared types - ALL agents must use these
-[Copy from plan.md Shared Contracts section]
-```
-
-## Agent Assignments
-
-### Agent: [stream-name]
-**Scope:** [files from plan]
-**Steps:** [step numbers from plan]
-**Deliverables:**
-- [List what this agent must produce]
-**Must use:** Types from Contracts section
-**Tests:** [Testing requirements]
-
-[Repeat for each parallel stream]
-
-## Execution Order
-
-1. **Parallel:** [streams that run together]
-2. **Sequential:** [streams that depend on parallel phase]
-3. **Integration:** Main agent validates and integrates
-
-## Completion Checklist
-
-- [ ] [stream-1]: pending
-- [ ] [stream-2]: pending
-- [ ] Integration: pending
-- [ ] Validation: pending
-```
-
-#### Step 4B.4: Define Shared Contracts First
-
-Before launching agents, implement shared types/interfaces:
-
-1. Create shared type files
-2. Run typecheck to verify
-3. Commit shared contracts
-
-This ensures all agents use consistent interfaces.
-
-#### Step 4B.5: Launch Parallel Agents
-
-For each parallel stream, launch a sub-agent:
-
-```javascript
-// Launch ALL parallel streams in a single message with multiple Task calls
-Task({
-  subagent_type: "general-purpose",
-  description: "Implement [stream-name]",
-  prompt: `
-    You are implementing the '[stream-name]' stream.
-
-    IMPORTANT: Read the coordination file first:
-    .claude/specs/[spec-id]/coordination.md
-
-    Your assignment:
-    - Scope: [files]
-    - Steps: [step numbers]
-    - Deliverables: [what to create]
-
-    Rules:
-    1. ONLY modify files within your scope
-    2. Use ONLY the types defined in the Contracts section
-    3. Create tests for your deliverables
-    4. Do NOT modify files outside your scope
-    5. Follow patterns from context files
-
-    When complete, report:
-    - Files created/modified
-    - Tests created
-    - Any issues encountered
-  `
-})
-```
-
-**CRITICAL:** Launch all parallel agents in a single message to execute concurrently.
-
-#### Step 4B.6: Wait for Parallel Completion
-
-Monitor agent completion:
-- Update coordination.md checklist as agents complete
-- Log any reported issues
-- Track files changed by each agent
-
-#### Step 4B.7: Sequential Phase
-
-After parallel streams complete:
-- Execute any sequential steps that depend on parallel work
-- This runs as main agent
-- Often includes integration steps
-
-#### Step 4B.8: Integration Validation
-
-Main agent:
-1. Verify all pieces work together
-2. Fix any integration issues
-3. Run full validation suite
+1. Wire up parallel agents' output into shared files (imports, exports, CLI registration)
+2. Run full validation suite
+3. Resolve any integration issues
 
 ```javascript
 Skill({ skill: "run-typecheck" })
 Skill({ skill: "run-lint" })
 Skill({ skill: "run-tests" })
 ```
+
+**Anti-patterns to AVOID:**
+- NEVER let parallel agents modify the same file (ALWAYS fails)
+- NEVER use coordination.md (agents use TaskList + SendMessage instead)
+- NEVER skip the lead-owns-shared-files pattern
 
 ### Phase 5: Validation
 
@@ -376,6 +287,60 @@ Options:
 ```
 
 Use **AskUserQuestion** to let user choose.
+
+#### Step 5.3: Test Enforcement Gate
+
+After validation completes, check if the plan includes test requirements:
+
+1. Parse plan.md for steps that mention "test" in their description or acceptance criteria
+2. If test steps exist, check if test files were created or modified during implementation:
+   - Look for files matching `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**` in the git diff
+3. If test ACs exist but NO test files were created/modified:
+
+   ```
+   TEST ENFORCEMENT: BLOCKED
+
+   The plan includes test requirements but no test files were created:
+     - [list test-related steps from plan.md]
+
+   You must write the required tests before completing implementation.
+   Do NOT skip this step or defer it to a later PR.
+   ```
+
+4. Resume implementation to write the missing tests, then re-run validation
+
+### Phase 5.5: Auto-Summary Generation
+
+Generate an implementation summary from actual data:
+
+1. Run `git diff --stat` against the baseline (before implementation started) to get files changed
+2. Run `git log --oneline` for commits made during implementation
+3. Cross-reference with plan.md checkboxes to determine AC status
+
+4. Write summary to `[spec-path]/summary.md`:
+
+   ```markdown
+   # Implementation Summary: [spec-id]
+
+   ## Changes
+   - [N] files modified, [M] files created, [D] files deleted
+   - [list from git diff --stat]
+
+   ## Commits
+   - [list from git log --oneline]
+
+   ## Acceptance Criteria
+   - [x] Step 1: [description]
+   - [x] Step 2: [description]
+   - [ ] Step 6: Unit tests (MISSING — test enforcement triggered)
+
+   ## Validation Results
+   - TypeScript: PASS
+   - Lint: PASS
+   - Tests: [N] passing, [M] failing
+   ```
+
+This summary serves as a permanent audit trail. When context windows expire across sessions, the summary survives.
 
 ### Phase 6: Completion
 
@@ -535,10 +500,10 @@ Options:
 
 # Parallel execution
 /cdd:implement add-user-auth --parallel
-# → Creates coordination.md
-# → Defines shared contracts
+# → Builds shared foundation (types, interfaces)
+# → Creates tasks via TaskCreate for each stream
 # → Launches parallel agents
-# → Integrates results
+# → Lead integrates results into shared files
 # → Runs validation
 
 # Isolated worktree execution
@@ -562,4 +527,5 @@ Options:
 - --parallel requires plan to have parallel analysis
 - Validation gates are configured in project-config.json
 - Skills handle the actual validation execution
-- Clean up specs after successful implementation
+- Auto-summary is generated before completion for audit trail
+- Test enforcement prevents skipping planned tests

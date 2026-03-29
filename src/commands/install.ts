@@ -128,6 +128,11 @@ export async function install(options: InstallOptions): Promise<InstallResult | 
     console.log(`    ${pc.cyan('/cdd-curate')}     — audit context quality`);
     console.log(`    ${pc.cyan('/cdd-health')}  — measure context health`);
     console.log(`    ${pc.cyan('/cdd-learn')}      — extract session knowledge`);
+    console.log('');
+    console.log('  CLI commands:');
+    console.log(`    ${pc.cyan('cdd curate')}       — static quality analysis`);
+    console.log(`    ${pc.cyan('cdd health')}       — health score & ROI analysis`);
+    console.log(`    ${pc.cyan('cdd status')}       — spec progress tracking`);
 
     return { status: 'installed', command: 'install', repoRoot, filesWritten, version };
   } catch (error) {

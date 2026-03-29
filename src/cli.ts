@@ -7,6 +7,7 @@ import { install } from './commands/install.js';
 import { setup } from './commands/setup.js';
 import { curate } from './commands/curate.js';
 import { health } from './commands/health.js';
+import { status } from './commands/status.js';
 import { learn } from './commands/learn.js';
 
 const cliDir = dirname(fileURLToPath(import.meta.url));
@@ -83,6 +84,19 @@ program
       dryRun: opts.dryRun,
       package: cmdOpts.package,
       all: cmdOpts.all,
+    });
+  });
+
+program
+  .command('status')
+  .description('Show progress across all specs')
+  .option('--specs-dir <path>', 'Additional specs directory to scan')
+  .action(async (cmdOpts) => {
+    const opts = program.opts();
+    await status({
+      json: opts.json,
+      verbose: opts.verbose,
+      specsDir: cmdOpts.specsDir,
     });
   });
 

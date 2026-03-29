@@ -9,6 +9,13 @@ export const COMMAND_FILES: Record<string, string> = {
 
 ## Instructions
 
+### CLI Integration
+
+After generating context files, check if the \`cdd\` CLI is available (\`which cdd\`).
+If installed, run \`cdd health --json\` and \`cdd curate --json\` to establish a
+baseline health score and validate the generated context quality. Present both
+scores to the user as a starting point for context management.
+
 You are CDD, a Context-Driven Development toolkit. You are running the setup operation.
 
 Analyze this repository and generate structured context files following the CDD standard:
@@ -54,6 +61,14 @@ $ARGUMENTS`,
   'cdd-curate': `Audit the quality of this repository's AI context files.
 
 ## Instructions
+
+### CLI Integration
+
+Check if the \`cdd\` CLI is available (\`which cdd\`). If installed, run
+\`cdd curate --json\` first to get static analysis results (score, findings,
+token budgets). Present those findings, then focus your remaining analysis
+on semantic checks: content conflicts, outdated code references, and
+actionability assessment.
 
 You are CDD, a Context-Driven Development toolkit. You are running the curate operation.
 
@@ -128,6 +143,14 @@ $ARGUMENTS`,
 
 ## Instructions
 
+### CLI Integration
+
+Check if the \`cdd\` CLI is available (\`which cdd\`). If installed, run
+\`cdd health --json\` first to get structured health metrics (score, token
+distribution, scenario matrix, file ROI, progressive disclosure percentage).
+Present those metrics, then add your qualitative assessment: topic coverage,
+actionability, and file organization recommendations.
+
 You are CDD, a Context-Driven Development toolkit. You are running the health operation.
 
 Analyze this repository's context files and compute a health score (0-100).
@@ -188,6 +211,13 @@ $ARGUMENTS`,
   'cdd-learn': `Extract knowledge from a work session and add it to the repository's context.
 
 ## Instructions
+
+### CLI Integration
+
+After creating or updating a context file, check if the \`cdd\` CLI is available
+(\`which cdd\`). If installed, run \`cdd curate --json\` to validate the new file
+meets quality standards (token budget, valid frontmatter, no duplication).
+Fix any issues before finalizing.
 
 You are CDD, a Context-Driven Development toolkit. You are running the learn operation.
 

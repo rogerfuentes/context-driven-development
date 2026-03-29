@@ -107,6 +107,13 @@ When generating a context file, use this structure:
 [What to avoid]
 ```
 
+### Post-Generation Validation (if CLI available)
+
+If `cdd` CLI is installed (`which cdd`):
+1. Run `cdd curate --json` to validate the new context file meets quality standards
+2. Check for: token budget compliance, valid frontmatter, no duplication with existing files
+3. If issues found, fix them before finalizing
+
 ### Updating CLAUDE.md
 
 After creating a context file, update the Technical Context table in CLAUDE.md:
