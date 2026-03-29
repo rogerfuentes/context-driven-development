@@ -22,7 +22,7 @@ Analyze this repository and generate structured context files following the CDD 
 
 1. **Detect project type** — Read package.json, tsconfig.json, or equivalent. Identify: language, framework (Next.js, NestJS, React Native, CLI, etc.), monorepo vs single-package.
 
-2. **Explore the codebase** — Analyze in parallel:
+2. **Explore the codebase** — Identify 4-8 topics relevant to this specific project. Common topics: architecture, code-style, testing, dev-setup. Additional topics as needed: API conventions, database patterns, deployment, state management, error handling. Analyze in parallel:
    - Architecture: system design, module boundaries, data flow, key dependencies
    - Code style: import conventions, naming patterns, TypeScript rules, anti-patterns
    - Testing: frameworks, patterns, mocking conventions, coverage approach
@@ -35,7 +35,7 @@ Analyze this repository and generate structured context files following the CDD 
 
 4. **Generate Context files** — Write context files to the repo's context directory (\`.claude/context/\` by default, or \`.claude-context/\` if that already exists):
    - Each file gets YAML frontmatter: \`name\`, \`description\`, \`reference\` (if subtopic)
-   - Follow token budgets: each file < 1,500 tokens
+   - Follow token budgets: each file within the configured token budget (default: 2,000 tokens per file, configurable in .cdd/config.yaml)
    - Use imperative mood for instructions ("Use X", not "X should be used")
    - Code examples over prose (target code-to-prose ratio > 0.3)
    - No hedge words in constraints ("Use pnpm" not "Consider using pnpm")
@@ -46,7 +46,7 @@ Analyze this repository and generate structured context files following the CDD 
    - Commands table (most-used dev commands)
    - Context Files table with: File, Description, Load When, Critical Rules
    - Inline Context Annotations instruction
-   - Total CLAUDE.md < 2,000 tokens
+   - Total CLAUDE.md within budget (default: 3,000 tokens, configurable in .cdd/config.yaml). For single-package repos target 50-100 lines, for monorepos up to 150 lines.
 
 6. **Self-audit** — Run quality checks on generated output before finalizing:
    - No double negatives, no open-ended lists
@@ -85,9 +85,9 @@ Scan this repository's CLAUDE.md and context files (\`.claude/context/\` or \`.c
 - No orphan context files (files not referenced from CLAUDE.md or another context file)
 
 **Token Efficiency:**
-- CLAUDE.md < 2,000 tokens
-- Each context file < 1,500 tokens
-- Total context < 8,000 tokens
+- CLAUDE.md within budget (default: 3,000 tokens, see .cdd/config.yaml)
+- Each context file within budget (default: 2,000 tokens)
+- Total context within budget (see .cdd/config.yaml)
 - No redundant content across files (flag if Jaccard similarity > 0.4)
 
 **Clarity:**
@@ -95,6 +95,7 @@ Scan this repository's CLAUDE.md and context files (\`.claude/context/\` or \`.c
 - No hedge words in constraints ("might", "consider", "could", "should consider")
 - No open-ended lists ("etc.", "and so on", "such as...and more")
 - Positive framing before negative ("Use X. Do not use Y." not reversed)
+- Actionability: instructions specific enough to follow without additional context (flag vague rules like 'Use TypeScript' — should be 'Enable strict mode with noImplicitAny: true')
 
 **Structure Quality:**
 - Code-to-prose ratio > 0.3 in pattern sections
@@ -177,6 +178,7 @@ Analyze this repository's context files and compute a health score (0-100).
    - Progressive disclosure (30%): Is context deferred appropriately?
    - File coverage (20%): Are standard topics covered for this project type?
    - ROI distribution (20%): Are tokens spent on high-value files?
+   Consider the project type when evaluating coverage — a CLI tool needs different topics than a full-stack web app.
 
 ### Output Format
 
@@ -244,11 +246,13 @@ Analyze the provided source (git diff, session transcript, or document) and extr
    - < 1,500 tokens per file
 
 4. **Validate** — Before writing:
-   - Does adding this push total context over 8,000 tokens?
+   - Does adding this push total context beyond the configured budget (see .cdd/config.yaml)?
    - Is there significant overlap with existing files?
    - Does the content follow the quality framework?
 
-5. **Integrate** — Update CLAUDE.md router:
+5. **Merge guidance** — If merging into an existing file, produce the COMPLETE updated file content (not a diff). Include all existing content plus new additions, maintaining frontmatter and section structure.
+
+6. **Integrate** — Update CLAUDE.md router:
    - Add entry to Context Files table
    - Include 1-2 line description + "Load when" trigger
    - Surface any CRITICAL rules inline

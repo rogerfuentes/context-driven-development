@@ -19,6 +19,7 @@ export function parseCurateFullResponse(output: string): CurateFullResult {
             rule: typeof f.rule === 'string' ? f.rule : 'semantic',
             message: f.message as string,
             ...(typeof f.file === 'string' ? { file: f.file } : {}),
+            ...(typeof f.priority === 'string' ? { priority: f.priority as 'high' | 'medium' | 'low' } : {}),
           }));
         return { findings };
       }

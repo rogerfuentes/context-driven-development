@@ -116,11 +116,11 @@ export async function learn(options: LearnOptions): Promise<void> {
 
     spinner.success('Knowledge extracted');
 
-    if (!learnResult.content) {
+    if (!learnResult.content || !learnResult.targetFile) {
       if (options.json) {
-        console.log(JSON.stringify({ status: 'completed', duration: result.duration, filesWritten: 0 }));
+        console.log(JSON.stringify({ status: 'completed', duration: result.duration, filesWritten: 0, ...(learnResult.reason ? { reason: learnResult.reason } : {}) }));
       } else {
-        console.log(pc.yellow('No content to write.'));
+        console.log(pc.yellow(learnResult.reason ?? 'No content to write.'));
       }
       return;
     }
