@@ -199,6 +199,26 @@ if (gates.unitTests?.enabled) {
 
 ### Phase 4B: Parallel Execution (when --parallel is specified)
 
+#### Phase 4B Pre-flight: Conflict Detection & Wave Planning
+
+Check if `cdd` CLI is available (`which cdd`).
+
+**If CLI is available:**
+1. Run `cdd conflict-detect <spec-id> --json` via Bash
+   - Parse JSON output
+   - If `hasConflicts: true`: display the conflicting files and which streams touch them
+   - Add all conflicting files to the lead's exclusive ownership list (off-limits for parallel agents)
+   - Present the conflicts to the user before proceeding
+2. Run `cdd wave-plan <spec-id> --json` via Bash
+   - Parse JSON output for wave ordering
+   - Use `phase0.sharedContracts` to guide Foundation phase
+   - Launch agents in wave order: all Wave 1 streams first, wait for completion, then Wave 2, etc.
+3. If cycle detected in wave plan, abort and ask user to fix dependencies in plan.md
+
+**If CLI is NOT available:**
+- Fall back to manual parsing of the Parallel Analysis section in plan.md
+- Manually identify shared files from the streams table
+
 **Lead-Owns-Shared-Files Pattern** (CRITICAL):
 - The lead agent (you) owns ALL shared files: entry points, barrel exports, type definitions, config files
 - Parallel agents create NEW files only — they must NEVER modify files that other agents touch
