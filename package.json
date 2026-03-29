@@ -1,6 +1,6 @@
 {
   "name": "@kelios/cdd",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CDD — Context-Driven Development CLI for AI context management",
   "type": "module",
   "bin": {
