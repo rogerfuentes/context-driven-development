@@ -115,8 +115,13 @@ async function loadContextFile(absolutePath: string, repoRoot: string): Promise<
   };
 }
 
-export async function scanRepo(repoRoot: string): Promise<RuleContext> {
+export interface ScanOptions {
+  exclude?: string[];
+}
+
+export async function scanRepo(repoRoot: string, options?: ScanOptions): Promise<RuleContext> {
   const config = await loadConfig(repoRoot);
+  const excludePrefixes = (options?.exclude ?? []).map(p => p.replace(/\/$/, ''));
 
   const claudeMdPath = await findClaudeMd(repoRoot);
   let claudeMdContent: string | null = null;
@@ -135,6 +140,9 @@ export async function scanRepo(repoRoot: string): Promise<RuleContext> {
   for (const ref of referencedRelPaths) {
     // Skip CLAUDE.md cross-references — they are not context files
     if (/claude\.md$/i.test(ref)) continue;
+
+    // Skip excluded paths
+    if (excludePrefixes.some(prefix => ref.startsWith(prefix + '/') || ref === prefix)) continue;
 
     const absPath = resolve(repoRoot, ref);
     if (await fileExists(absPath)) {

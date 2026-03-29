@@ -22,6 +22,7 @@ export interface CurateOptions {
   verbose?: boolean;
   dryRun?: boolean;
   full?: boolean;
+  exclude?: string[];
 }
 
 export async function curate(options: CurateOptions): Promise<void> {
@@ -38,7 +39,7 @@ export async function curate(options: CurateOptions): Promise<void> {
     return;
   }
 
-  const ctx = await scanRepo(repoRoot);
+  const ctx = await scanRepo(repoRoot, { exclude: options.exclude });
 
   const findings: Finding[] = [
     ...checkClarity(ctx),
