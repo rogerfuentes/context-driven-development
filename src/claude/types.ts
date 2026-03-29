@@ -10,6 +10,7 @@ export interface CurateFullResult {
     rule: string;
     message: string;
     file?: string;
+    priority?: 'high' | 'medium' | 'low';
   }>;
 }
 
@@ -27,9 +28,10 @@ export interface BenchmarkResult {
 }
 
 export interface TrainResult {
-  action: 'create' | 'merge';
-  targetFile: string;
-  content: string;
+  action: 'create' | 'merge' | 'skip';
+  targetFile: string | null;
+  content: string | null;
   overlap: Array<{ file: string; similarity: number }>;
-  claudeMdUpdate?: string;
+  claudeMdUpdate?: string | null;
+  reason?: string;
 }
