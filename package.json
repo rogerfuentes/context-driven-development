@@ -1,0 +1,53 @@
+{
+  "name": "cdd",
+  "version": "0.1.0",
+  "description": "CDD — Context-Driven Development CLI for AI context management",
+  "type": "module",
+  "bin": {
+    "cdd": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint \"src/**/*.ts\"",
+    "format": "eslint \"src/**/*.ts\" --fix",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.6",
+    "commander": "^13.0.0",
+    "execa": "^9.0.0",
+    "picocolors": "^1.1.0",
+    "tinyglobby": "^0.2.0",
+    "yaml": "^2.6.0",
+    "yocto-spinner": "^0.2.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "vitest": "^3.0.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0"
+  },
+  "author": "Roger Fuentes <jrogerfuentes@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rogerfuentes/context-driven-development"
+  }
+}

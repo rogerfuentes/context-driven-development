@@ -14,3 +14,14 @@ firebase-debug.log
 
 # Local documentation (research/design notes)
 docs/
+
+# Build output
+dist/
+node_modules/
+
+# Lock files (user chooses package manager)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lock
+.cdd/

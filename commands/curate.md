@@ -27,6 +27,23 @@ Validate, optimize, and maintain context files.
 
 ## Behavior
 
+### Phase 0: CLI Static Analysis (if available)
+
+Check if the `cdd` CLI is installed by running `which cdd` via Bash.
+
+**If CLI is available:**
+1. Run `cdd curate --json` via Bash to get static analysis results
+2. Parse the JSON output — it includes: score, findings (errors/warnings/info), token budgets
+3. Present the CLI findings to the user
+4. Focus your remaining analysis on **semantic-only checks** that require codebase understanding:
+   - Content conflicts between context files
+   - Outdated code references (verify referenced files/functions still exist by grepping)
+   - Actionability assessment (are instructions specific enough to follow?)
+5. Merge CLI findings with your semantic findings in the final report
+
+**If CLI is NOT available:**
+- Proceed with the full manual check workflow below
+
 ### Pre-flight Checks
 
 1. Verify `.claude/` structure exists
