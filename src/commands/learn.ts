@@ -28,6 +28,7 @@ export interface LearnOptions {
   url?: string;
   prompt?: string;
   yes?: boolean;
+  exclude?: string[];
 }
 
 export async function learn(options: LearnOptions): Promise<void> {
@@ -64,7 +65,7 @@ export async function learn(options: LearnOptions): Promise<void> {
     console.log(pc.dim(`Source: ${sourceResult.label}`));
   }
 
-  const existingContext = await scanRepo(repoRoot);
+  const existingContext = await scanRepo(repoRoot, { exclude: options.exclude });
   const existingInfo = buildExistingContextInfo(existingContext);
 
   const mergeInstruction = options.merge
