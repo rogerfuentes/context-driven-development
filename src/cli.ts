@@ -9,6 +9,8 @@ import { curate } from './commands/curate.js';
 import { health } from './commands/health.js';
 import { status } from './commands/status.js';
 import { learn } from './commands/learn.js';
+import { wavePlan } from './commands/wave-plan.js';
+import { conflictDetect } from './commands/conflict-detect.js';
 
 const cliDir = dirname(fileURLToPath(import.meta.url));
 const { version } = JSON.parse(readFileSync(join(cliDir, '..', 'package.json'), 'utf-8'));
@@ -119,6 +121,32 @@ program
       url: cmdOpts.url,
       prompt: promptParts.length > 0 ? promptParts.join(' ') : undefined,
       yes: opts.yes,
+    });
+  });
+
+program
+  .command('wave-plan <spec-id>')
+  .description('Generate execution wave plan from a spec')
+  .option('--specs-dir <path>', 'Custom specs directory')
+  .action(async (specId: string, cmdOpts) => {
+    const opts = program.opts();
+    await wavePlan(specId, {
+      json: opts.json,
+      verbose: opts.verbose,
+      specsDir: cmdOpts.specsDir,
+    });
+  });
+
+program
+  .command('conflict-detect <spec-id>')
+  .description('Detect shared-file conflicts in parallel streams')
+  .option('--specs-dir <path>', 'Custom specs directory')
+  .action(async (specId: string, cmdOpts) => {
+    const opts = program.opts();
+    await conflictDetect(specId, {
+      json: opts.json,
+      verbose: opts.verbose,
+      specsDir: cmdOpts.specsDir,
     });
   });
 
