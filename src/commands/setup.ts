@@ -1,9 +1,10 @@
-import { mkdir, writeFile } from 'node:fs/promises';
-import { dirname } from 'node:path';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 
 import pc from 'picocolors';
 import yoctoSpinner from 'yocto-spinner';
 
+import { detectAuth } from '../claude/auth.js';
 import { renderPrompt } from '../claude/prompt-loader.js';
 import { PROMPTS } from '../claude/prompts.js';
 import { checkClaudeInstalled, ClaudeRunnerError, runAgent } from '../claude/runner.js';
@@ -52,14 +53,13 @@ export async function setup(options: SetupOptions): Promise<void> {
     return;
   }
 
-  // Agent SDK requires ANTHROPIC_API_KEY; Claude CLI must also be installed (SDK spawns it)
-  // eslint-disable-next-line turbo/no-undeclared-env-vars -- runtime requirement, not build dependency
-  if (!process.env.ANTHROPIC_API_KEY) {
-    const message = 'ANTHROPIC_API_KEY is required. Set it in your environment.';
+  // Agent SDK requires Anthropic or Bedrock auth; Claude CLI must also be installed (SDK spawns it)
+  const auth = detectAuth();
+  if (!auth.ok) {
     if (options.json) {
-      console.log(JSON.stringify({ status: 'error', message }));
+      console.log(JSON.stringify({ status: 'error', message: auth.message }));
     } else {
-      console.error(pc.red(`Error: ${message}`));
+      console.error(pc.red(`Error: ${auth.message}`));
     }
     process.exitCode = 3;
     return;
@@ -76,6 +76,8 @@ export async function setup(options: SetupOptions): Promise<void> {
     process.exitCode = 3;
     return;
   }
+
+  await maybeEnforceModelFloor(repoRoot, options);
 
   const result = await setupRoot(repoRoot, options);
   if (result.status === 'error') {
@@ -208,7 +210,7 @@ Files to migrate (read each with the Read tool):\n`;
       cwd: repoRoot,
       verbose: options.verbose,
       timeout: 600_000,
-      model: 'claude-sonnet-4-6',
+      model: 'claude-opus-4-7',
     });
 
     const setupResult = parseSetupResponse(result.output);
@@ -332,14 +334,13 @@ async function setupAll(repoRoot: string, options: SetupOptions): Promise<void> 
     return;
   }
 
-  // Agent SDK requires ANTHROPIC_API_KEY; Claude CLI must also be installed
-  // eslint-disable-next-line turbo/no-undeclared-env-vars -- runtime requirement, not build dependency
-  if (!process.env.ANTHROPIC_API_KEY) {
-    const message = 'ANTHROPIC_API_KEY is required. Set it in your environment.';
+  // Agent SDK requires Anthropic or Bedrock auth; Claude CLI must also be installed
+  const auth = detectAuth();
+  if (!auth.ok) {
     if (options.json) {
-      console.log(JSON.stringify({ status: 'error', message }));
+      console.log(JSON.stringify({ status: 'error', message: auth.message }));
     } else {
-      console.error(pc.red(`Error: ${message}`));
+      console.error(pc.red(`Error: ${auth.message}`));
     }
     process.exitCode = 3;
     return;
@@ -403,6 +404,8 @@ async function setupAll(repoRoot: string, options: SetupOptions): Promise<void> 
       return;
     }
   }
+
+  await maybeEnforceModelFloor(repoRoot, options);
 
   // -- Phase 1: Setup root context first --
   // Root context is processed first so packages can use the migrated/compressed
@@ -497,7 +500,7 @@ async function setupSinglePackage(
       cwd: repoRoot,
       verbose: options.verbose,
       timeout: 300_000,
-      model: 'claude-sonnet-4-6',
+      model: 'claude-opus-4-7',
     });
 
     const setupResult = parseSetupResponse(result.output);
@@ -519,6 +522,76 @@ async function setupSinglePackage(
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return { name: pkg.name, relativePath: pkg.relativePath, status: 'error', error: message };
+  }
+}
+
+const MODEL_FLOOR = 'claude-opus-4-7';
+const MODEL_FLOOR_MAJOR = 4;
+const MODEL_FLOOR_MINOR = 7;
+
+/**
+ * True if `model` meets the Opus 4.7 floor. Accepts:
+ *   - Opus at version >= 4.7 (e.g., claude-opus-4-7, claude-opus-4-8, claude-opus-5-0)
+ *   - Any explicitly larger / newer family we want to permit in the future
+ *
+ * Anything below the floor (sonnet, haiku, opus < 4.7, unknown) returns false.
+ */
+export function meetsModelFloor(model: string): boolean {
+  const normalized = model.trim().toLowerCase();
+  const opusMatch = /^claude-opus-(\d+)-(\d+)/.exec(normalized);
+  if (!opusMatch) return false;
+
+  const major = Number(opusMatch[1]);
+  const minor = Number(opusMatch[2]);
+  if (major > MODEL_FLOOR_MAJOR) return true;
+  if (major === MODEL_FLOOR_MAJOR) return minor >= MODEL_FLOOR_MINOR;
+  return false;
+}
+
+/**
+ * Enforce the project model floor of Opus 4.7 in `.claude/settings.json`.
+ *
+ * If the existing model already meets the floor (Opus >= 4.7 or anything we
+ * recognize as larger/newer), do nothing. Otherwise prompt the user to write
+ * `claude-opus-4-7`. Skipped under --json, --dry-run, or -y.
+ */
+async function maybeEnforceModelFloor(repoRoot: string, options: SetupOptions): Promise<void> {
+  if (options.json || options.dryRun || options.yes) return;
+
+  const settingsPath = join(repoRoot, '.claude', 'settings.json');
+  const existing = await readJsonIfExists(settingsPath);
+  const currentModel = typeof existing?.model === 'string' ? existing.model : undefined;
+
+  if (currentModel && meetsModelFloor(currentModel)) return;
+
+  console.log('');
+  console.log(pc.bold('CDD setup requires at least Claude Opus 4.7.'));
+  if (currentModel) {
+    console.log(pc.dim(`  Current .claude/settings.json model: ${currentModel} (below floor)`));
+  } else {
+    console.log(pc.dim('  No model set in .claude/settings.json.'));
+  }
+  const enable = await confirm(`Set this project's Claude model to "${MODEL_FLOOR}"?`);
+  if (!enable) {
+    console.log(pc.yellow('Skipped — CDD requires Opus 4.7 or newer; setup may produce lower-quality results.'));
+    console.log('');
+    return;
+  }
+
+  const next = { ...(existing ?? {}), model: MODEL_FLOOR };
+  await mkdir(dirname(settingsPath), { recursive: true });
+  await writeFile(settingsPath, JSON.stringify(next, null, 2) + '\n', 'utf-8');
+  console.log(pc.green(`Wrote model: "${MODEL_FLOOR}" to .claude/settings.json`));
+  console.log('');
+}
+
+async function readJsonIfExists(path: string): Promise<Record<string, unknown> | null> {
+  try {
+    const raw = await readFile(path, 'utf-8');
+    const parsed = JSON.parse(raw);
+    return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : null;
+  } catch {
+    return null;
   }
 }
 

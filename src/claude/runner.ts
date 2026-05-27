@@ -2,6 +2,8 @@ import { query, AbortError } from '@anthropic-ai/claude-agent-sdk';
 import { execa } from 'execa';
 import pc from 'picocolors';
 
+import { detectAuth } from './auth.js';
+
 export type PermissionMode = 'default' | 'acceptEdits' | 'plan' | 'dontAsk' | 'bypassPermissions';
 
 export interface ClaudeRunnerOptions {
@@ -144,16 +146,12 @@ export async function runAgent(options: AgentRunnerOptions): Promise<ClaudeResul
     cwd,
     timeout = DEFAULT_TIMEOUT,
     verbose = false,
-    model = 'claude-sonnet-4-6',
+    model = 'claude-opus-4-7',
   } = options;
 
-  // eslint-disable-next-line turbo/no-undeclared-env-vars -- runtime requirement, not build dependency
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new ClaudeRunnerError(
-      'ANTHROPIC_API_KEY is required for agent mode. Set it in your environment.',
-      3,
-      '',
-    );
+  const auth = detectAuth();
+  if (!auth.ok) {
+    throw new ClaudeRunnerError(auth.message ?? 'Authentication required for agent mode.', 3, '');
   }
 
   if (verbose) {
