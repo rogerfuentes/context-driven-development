@@ -1,7 +1,7 @@
 {
-  "name": "@kelios/cdd",
-  "version": "0.1.1",
-  "description": "CDD — Context-Driven Development CLI for AI context management",
+  "name": "claude-cdd",
+  "version": "0.2.1",
+  "description": "CDD — Context-Driven Development CLI for Claude context management",
   "type": "module",
   "bin": {
     "cdd": "./dist/cli.js"
