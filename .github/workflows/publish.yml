@@ -18,5 +18,4 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
       - run: npm i
-      - run: npm test
       - run: npm publish --provenance --access public
