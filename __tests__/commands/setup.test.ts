@@ -51,6 +51,8 @@ describe('setup command', () => {
   let errorSpy: ReturnType<typeof vi.spyOn>;
 
   let originalApiKey: string | undefined;
+  let originalBedrockToken: string | undefined;
+  let originalBedrockFlag: string | undefined;
 
   beforeEach(async () => {
     tempDir = await mkdtemp(join(tmpdir(), 'cdd-test-setup-'));
@@ -58,7 +60,11 @@ describe('setup command', () => {
     mockedFindRepoRoot.mockResolvedValue(tempDir);
     mockedCheckClaudeInstalled.mockResolvedValue(true);
     originalApiKey = process.env.ANTHROPIC_API_KEY;
+    originalBedrockToken = process.env.AWS_BEARER_TOKEN_BEDROCK;
+    originalBedrockFlag = process.env.CLAUDE_CODE_USE_BEDROCK;
     process.env.ANTHROPIC_API_KEY = 'test-key';
+    delete process.env.AWS_BEARER_TOKEN_BEDROCK;
+    delete process.env.CLAUDE_CODE_USE_BEDROCK;
     logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     process.exitCode = undefined;
@@ -72,6 +78,16 @@ describe('setup command', () => {
       process.env.ANTHROPIC_API_KEY = originalApiKey;
     } else {
       delete process.env.ANTHROPIC_API_KEY;
+    }
+    if (originalBedrockToken !== undefined) {
+      process.env.AWS_BEARER_TOKEN_BEDROCK = originalBedrockToken;
+    } else {
+      delete process.env.AWS_BEARER_TOKEN_BEDROCK;
+    }
+    if (originalBedrockFlag !== undefined) {
+      process.env.CLAUDE_CODE_USE_BEDROCK = originalBedrockFlag;
+    } else {
+      delete process.env.CLAUDE_CODE_USE_BEDROCK;
     }
     vi.clearAllMocks();
   });
@@ -104,6 +120,35 @@ describe('setup command', () => {
     expect(output).toBeDefined();
     const parsed = JSON.parse(output![0] as string);
     expect(parsed.message).toContain('ANTHROPIC_API_KEY');
+  });
+
+  it('accepts Bedrock auth as an alternative to ANTHROPIC_API_KEY', async () => {
+    delete process.env.ANTHROPIC_API_KEY;
+    process.env.AWS_BEARER_TOKEN_BEDROCK = 'aws-token';
+    process.env.CLAUDE_CODE_USE_BEDROCK = '1';
+
+    const jsonResponse = JSON.stringify({
+      files: [],
+      projectType: 'unknown',
+      topics: [],
+    });
+    mockedRunAgent.mockResolvedValue({ output: jsonResponse, exitCode: 0, duration: 1000 });
+
+    await setup({ json: true });
+
+    expect(process.exitCode).not.toBe(3);
+    expect(mockedRunAgent).toHaveBeenCalled();
+  });
+
+  it('rejects Bedrock token without CLAUDE_CODE_USE_BEDROCK=1', async () => {
+    delete process.env.ANTHROPIC_API_KEY;
+    process.env.AWS_BEARER_TOKEN_BEDROCK = 'aws-token';
+
+    await setup({});
+
+    expect(process.exitCode).toBe(3);
+    const errorMsg = errorSpy.mock.calls[0]?.[0] as string;
+    expect(errorMsg).toContain('CLAUDE_CODE_USE_BEDROCK');
   });
 
   it('sets exitCode 3 when Claude CLI is not installed', async () => {
@@ -363,5 +408,78 @@ describe('setup command', () => {
     await setup({});
 
     expect(mockedRunAgent.mock.calls[0][0].timeout).toBe(600_000);
+  });
+
+  describe('model floor enforcement', () => {
+    it('writes claude-opus-4-7 to .claude/settings.json when no model is set', async () => {
+      const jsonResponse = JSON.stringify({ files: [], projectType: 'unknown', topics: [] });
+      mockedRunAgent.mockResolvedValue({ output: jsonResponse, exitCode: 0, duration: 1000 });
+
+      await setup({});
+
+      const settings = JSON.parse(
+        await (await import('node:fs/promises')).readFile(
+          join(tempDir, '.claude', 'settings.json'),
+          'utf-8',
+        ),
+      );
+      expect(settings.model).toBe('claude-opus-4-7');
+    });
+
+    it('does not overwrite when existing model already meets the floor', async () => {
+      await mkdir(join(tempDir, '.claude'), { recursive: true });
+      await writeFile(
+        join(tempDir, '.claude', 'settings.json'),
+        JSON.stringify({ model: 'claude-opus-5-0', other: 'keep-me' }),
+      );
+
+      const jsonResponse = JSON.stringify({ files: [], projectType: 'unknown', topics: [] });
+      mockedRunAgent.mockResolvedValue({ output: jsonResponse, exitCode: 0, duration: 1000 });
+
+      await setup({});
+
+      const settings = JSON.parse(
+        await (await import('node:fs/promises')).readFile(
+          join(tempDir, '.claude', 'settings.json'),
+          'utf-8',
+        ),
+      );
+      expect(settings.model).toBe('claude-opus-5-0');
+      expect(settings.other).toBe('keep-me');
+    });
+
+    it('upgrades a below-floor model when user confirms', async () => {
+      await mkdir(join(tempDir, '.claude'), { recursive: true });
+      await writeFile(
+        join(tempDir, '.claude', 'settings.json'),
+        JSON.stringify({ model: 'claude-sonnet-4-6', preserveMe: true }),
+      );
+
+      const jsonResponse = JSON.stringify({ files: [], projectType: 'unknown', topics: [] });
+      mockedRunAgent.mockResolvedValue({ output: jsonResponse, exitCode: 0, duration: 1000 });
+
+      await setup({});
+
+      const settings = JSON.parse(
+        await (await import('node:fs/promises')).readFile(
+          join(tempDir, '.claude', 'settings.json'),
+          'utf-8',
+        ),
+      );
+      expect(settings.model).toBe('claude-opus-4-7');
+      expect(settings.preserveMe).toBe(true);
+    });
+
+    it('skips the model prompt under --yes', async () => {
+      const jsonResponse = JSON.stringify({ files: [], projectType: 'unknown', topics: [] });
+      mockedRunAgent.mockResolvedValue({ output: jsonResponse, exitCode: 0, duration: 1000 });
+
+      await setup({ yes: true });
+
+      const fs = await import('node:fs/promises');
+      await expect(
+        fs.access(join(tempDir, '.claude', 'settings.json')),
+      ).rejects.toThrow();
+    });
   });
 });

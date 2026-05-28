@@ -382,8 +382,10 @@ describe('ClaudeRunner', () => {
       expect(result.output).toContain('"files"');
     });
 
-    it('throws ClaudeRunnerError when ANTHROPIC_API_KEY is missing', async () => {
+    it('throws ClaudeRunnerError when no auth env vars are set', async () => {
       delete process.env.ANTHROPIC_API_KEY;
+      delete process.env.AWS_BEARER_TOKEN_BEDROCK;
+      delete process.env.CLAUDE_CODE_USE_BEDROCK;
 
       await expect(runAgent({ prompt: 'test' })).rejects.toThrow(ClaudeRunnerError);
 
@@ -393,6 +395,38 @@ describe('ClaudeRunner', () => {
         const err = e as ClaudeRunnerError;
         expect(err.exitCode).toBe(3);
         expect(err.message).toContain('ANTHROPIC_API_KEY');
+        expect(err.message).toContain('AWS_BEARER_TOKEN_BEDROCK');
+      }
+    });
+
+    it('accepts Bedrock auth when CLAUDE_CODE_USE_BEDROCK=1 is set', async () => {
+      delete process.env.ANTHROPIC_API_KEY;
+      process.env.AWS_BEARER_TOKEN_BEDROCK = 'aws-bearer-token';
+      process.env.CLAUDE_CODE_USE_BEDROCK = '1';
+      try {
+        mockQueryResult('ok');
+        const result = await runAgent({ prompt: 'test' });
+        expect(result.exitCode).toBe(0);
+      } finally {
+        delete process.env.AWS_BEARER_TOKEN_BEDROCK;
+        delete process.env.CLAUDE_CODE_USE_BEDROCK;
+      }
+    });
+
+    it('rejects Bedrock token when CLAUDE_CODE_USE_BEDROCK is not set', async () => {
+      delete process.env.ANTHROPIC_API_KEY;
+      process.env.AWS_BEARER_TOKEN_BEDROCK = 'aws-bearer-token';
+      delete process.env.CLAUDE_CODE_USE_BEDROCK;
+      try {
+        await expect(runAgent({ prompt: 'test' })).rejects.toThrow(ClaudeRunnerError);
+        try {
+          await runAgent({ prompt: 'test' });
+        } catch (e) {
+          const err = e as ClaudeRunnerError;
+          expect(err.message).toContain('CLAUDE_CODE_USE_BEDROCK');
+        }
+      } finally {
+        delete process.env.AWS_BEARER_TOKEN_BEDROCK;
       }
     });
 
@@ -408,13 +442,13 @@ describe('ClaudeRunner', () => {
       expect(callArgs.options.permissionMode).toBe('bypassPermissions');
     });
 
-    it('uses default model claude-sonnet-4-6', async () => {
+    it('uses default model claude-opus-4-7', async () => {
       mockQueryResult('ok');
 
       await runAgent({ prompt: 'test' });
 
       const callArgs = mockQuery.mock.calls[0][0];
-      expect(callArgs.options.model).toBe('claude-sonnet-4-6');
+      expect(callArgs.options.model).toBe('claude-opus-4-7');
     });
 
     it('passes systemPrompt when provided', async () => {
